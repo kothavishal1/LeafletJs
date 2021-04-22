@@ -1,126 +1,136 @@
-# leaflet-sidebar
+# Shapefile.js
 
-A responsive sidebar plugin for [Leaflet](http://leafletjs.com/), a JS library for interactive maps.
+If you are having encoding issues in internet explorer please include [this script](https://cdn.rawgit.com/calvinmetcalf/text-encoding/4aff951959085f74a5872aeed8d79ec95b6c74c3/lib/encoding-indexes.js) as well.
 
-Please also have a look at [sidebar-v2](https://github.com/Turbo87/sidebar-v2), the tabbed successor of this library.
+Redoing all of this in modern JS. Promises, Typed Arrays, other hipster things, I wouldn't say it's based on [RandomEtc's version](https://github.com/RandomEtc/shapefile-js) as much as inspired by it as there is 0 code shared and I really only read the binary ajax part of his (hence why my function has the same name, they are otherwise not related). My sources were:
 
-<a href="https://flattr.com/submit/auto?user_id=turbo&url=https%3A%2F%2Fgithub.com%2FTurbo87%2Fleaflet-sidebar" target="_blank"><img src="https://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a>
+- [wikipedia article](https://en.wikipedia.org/wiki/Shapefile)
+- [ESRI white paper](http://www.esri.com/library/whitepapers/pdfs/shapefile.pdf)
+- [This page on Xbase](http://www.clicketyclick.dk/databases/xbase/format/dbf.html)
 
+## Demos
 
-## Examples
+- [Countries/zipfile](http://calvinmetcalf.github.io/shapefile-js)
+- [Google maps](http://calvinmetcalf.github.io/shapefile-js/site/map.html)
+- [Local Zipfile](http://leaflet.calvinmetcalf.com)
+- [Projected big with web workers](http://calvinmetcalf.github.io/shapefile-js/site/proj.html)
+- [Projected small](http://calvinmetcalf.github.io/shapefile-js/site/proj-small.html)
 
-![Basic example](leaflet-sidebar.gif)
+## Usage
 
-Examples are available in the `examples` folder and on Github Pages:
+For use with [browserify](http://browserify.org/), [webpack](https://webpack.github.io/):
 
-* [Basic example](http://turbo87.github.io/leaflet-sidebar/examples/)
-* [mapbox.js listing-markers example](http://turbo87.github.io/leaflet-sidebar/examples/listing-markers.html)
-* [Example with 2 sidebars](http://turbo87.github.io/leaflet-sidebar/examples/two-sidebars.html)
+    npm install shpjs --save
+    
+Or include directly in your webpage from:
 
+    https://unpkg.com/shpjs@latest/dist/shp.js
 
-## Using the plugin
+## API
 
-See the included examples for usage.
+Has a function `shp` which accepts a string which is the path the she shapefile minus the extension and returns a promise which resolves into geojson.
 
+```javascript
+	//for the shapefiles in the folder called 'files' with the name pandr.shp
+	shp("files/pandr").then(function(geojson){
+		//do something with your geojson
+	});
+```
+or you can call it on a .zip file which contains the shapefile
 
-### Usage
+```javascript
+	//for the shapefiles in the files folder called pandr.shp
+	shp("files/pandr.zip").then(function(geojson){
+		//see bellow for whats here this internally call shp.parseZip()
+	});
+```
 
-Add a content container somewhere in your document:
+or if you got the zip some other way (like the [File API](https://developer.mozilla.org/en-US/docs/Web/API/File)) then with the arrayBuffer you can call
 
-~~~~html
-<div id="sidebar">
-    <h1>leaflet-sidebar</h1>
-</div>
-~~~~
+```javascript
+shp(buffer).then(function(geojson){});
+//or
+shp.parseZip(buffer)->returns zip
+```
+If there is only one shp in the zipefile it returns geojson, if there are multiple then it will be an array.  All of the geojson objects have an extra key `fileName` the value of which is the
+name of the shapefile minus the extension (I.E. the part of the name that's the same for all of them)
 
-Create a new `L.Control.Sidebar` and add it to the map:
+You could also load the arraybuffers seperately:
 
-~~~~javascript
-var sidebar = L.control.sidebar('sidebar', {
-    position: 'left'
+```javascript
+shp.combine([shp.parseShp(shpBuffer, /*optional prj str*/),shp.parseDbf(dbfBuffer)]);
+```
+
+## Stick it in a worker
+
+I used my library [catiline](http://catilinejs.com/) to parallelize the demos to do so I changed
+
+```html
+<script src='dist/shp.js'> </script>
+<script>
+	shp('files/shapeFile.zip').then(function(data){
+		//do stuff with data
+	});
+</script>
+```
+
+to
+
+```html
+<script src='website/catiline.js'> </script>
+<script>
+	var worker = cw(function(base,cb){
+		importScripts('dist/shp.js');
+		shp(base).then(cb);
+	});
+	//worker can be called multiple times
+	worker.data(cw.makeUrl('files/shapeFile.zip')).then(function(data){
+		//do stuff with data
+	});
+</script>
+```
+
+to send the worker a buffer from the file api you'd do (I'm omitting where you include the catiline script)
+
+```javascript
+var worker = cw(function(data){
+	importScripts('../dist/shp.js');
+	return shp.parseZip(data);
 });
 
-map.addControl(sidebar);
-~~~~
-
-The sidebar will be hidden on startup, use the following methods to show or hide it:
-
-~~~~javascript
-// Show sidebar
-sidebar.show();
-
-// Hide sidebar
-sidebar.hide();
-
-// Toggle sidebar visibility
-sidebar.toggle();
-
-// Check sidebar visibility
-var visible = sidebar.isVisible();
-~~~~
-
-If you want the sidebar to be visible on startup use the following snippet after adding it to the map:
-
-~~~~javascript
-setTimeout(function () {
-    sidebar.show();
-}, 500);
-~~~~
-
-Do not call `show()` directly after adding the control to the map. The `setTimeout` will work around some CSS quirks for you.
-
-The content of the sidebar can be changed dynamically:
-
-~~~~javascript
-sidebar.setContent('test <b>test</b> test');
-~~~~
-
-If you need more flexibility you can use `sidebar.getContainer()` to get the content container element or use e.g. jQuery on the `<div id="sidebar">` element.
-
-
-### Options
-
-The sidebar can be configured with these options:
-
-- **position**: Can be `left` (default) or `right` and shouldn't need explaining.
-- **closeButton**: Can be `true` (default) or `false`. If `true` a close button will be added to the sidebar.
-- **autoPan**: Can be `true` (default) or `false`. If `true` the map will be shifted when the sidebar is shown.
-
-
-### Events
-
-Whenever the visibility of the sidebar is changed, an event is fired on the sidebar instance. You can listen for these events like this:
-
-~~~~javascript
-sidebar.on('hidden', function () {
-    console.log('Sidebar is now hidden.');
+worker.data(reader.result,[reader.result]).then(function(data){
+	//do stuff with data
 });
-~~~~
+```
 
-Available events:
+## Done
 
-- **show**: Show animation is starting, sidebar will be visible.
-- **shown**: Show animation finished, sidebar is now visible.
-- **hide**: Hide animation is starting, sidebar will be hidden.
-- **hidden**: Hide animation finished, sidebar is now hidden.
+- Binary Ajax
+- parsing the shp
+- parse the dbf
+- join em
+- zip
+- file api
+- Some Projections
+- More Projections
 
-Note that the `shown` and `hidden` events depend on `transitionend`/`webkitTransitionEnd` which might not be supported by all browsers yet.
+## to do
 
-
-## Compatibility
-
-leaflet-sidebar was developed to work with Leaflet 0.6.4 and should work fine
-with v0.7 too. I have no information whether it works well with older versions.
-
-The leaflet-sidebar plugin has been tested on the following systems and browsers:
-
-- Ubuntu: Firefox, Chrome
-- Mac OS X: Firefox, Chrome, Safari
-- Android 4.3: Firefox, Chrome, Opera
-- iOS: Safari
-- Windows XP: Internet Explorer 6 (failed!)
+- check for geometry validity.
+- Tests
 
 
-## License
+## LICENSE
+Main library MIT license, original version was less permissive but there is 0 code shared. Included libraries are under their respective lisenses which are:
+- [JSZip](https://github.com/Stuk/jszip/) by @Stuk MIT or GPLv3
+- [lie](https://github.com/calvinmetcalf/lie) by me and @RubenVerborgh MIT
+- [setImmediate](https://github.com/NobleJS/setImmediate) by @NobleJS et al MIT
+- [World Borders shapefile](http://thematicmapping.org/downloads/world_borders.php) is CC-BY-SA 3.0.
+- Park and Ride shapefile is from [MassDOT](http://mass.gov/massdot) and is public domain.
+- MA town boundaries from [MassGIS](http://www.mass.gov/anf/research-and-tech/it-serv-and-support/application-serv/office-of-geographic-information-massgis/) and is public domain
+- NJ County Boundaries from [NJgin](https://njgin.state.nj.us/NJ_NJGINExplorer/index.jsp) and should be public domain.
+- [Proj4js](https://github.com/proj4js/proj4js) by me et al MIT
 
-leaflet-sidebar is free software, and may be redistributed under the [MIT license](LICENSE).
+[![Dependency Status](https://david-dm.org/calvinmetcalf/shapefile-js.svg)](https://david-dm.org/calvinmetcalf/shapefile-js)
+[![devDependency Status](https://david-dm.org/calvinmetcalf/shapefile-js/dev-status.svg)](https://david-dm.org/calvinmetcalf/shapefile-js#info=devDependencies)
+[![peerDependency Status](https://david-dm.org/calvinmetcalf/shapefile-js/peer-status.svg)](https://david-dm.org/calvinmetcalf/shapefile-js#info=peerDependencies)
