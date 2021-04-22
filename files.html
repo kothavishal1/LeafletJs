@@ -28,26 +28,38 @@
                 return "http://rs1.adc4gis.com/js/openlayers/2.9.1/";
             };
 
-
-            var starttime = +new Date,
-                map = new OpenLayers.Map("map",{allOverlays: true}),
+            var map = new OpenLayers.Map("map",{allOverlays: true}),
                 parser = new OpenLayers.Format.GeoJSON(),
-                vector = new OpenLayers.Layer.Vector("Converted"),
-
-                shapefile = new Shapefile({
-                    shp: "testdata/world.shp",
-                    dbf: "testdata/world.dbf"
-                }, function(data){
-                    var features = parser.read(data.geojson);
-                    vector.addFeatures(features);
-                    map.zoomToExtent(vector.getDataExtent());
-
-                    console.log("took",new Date - starttime,"milliseconds")
-                    console.log(data);
-                })
+                vector = new OpenLayers.Layer.Vector("Converted")
 
             map.addLayer(vector);
+
+            var onchange = function(e) {
+                var shpFile = document.getElementById('shp').files[0];
+                var dbfFile = document.getElementById('dbf').files[0];
+                if (shpFile) {
+                    var opts = { shp: shpFile };
+                    if (dbfFile) {
+                        opts['dbf'] = dbfFile;
+                    }
+                    shapefile = new Shapefile(opts, function(data){
+                        var features = parser.read(data.geojson);
+                        vector.addFeatures(features);
+                        map.zoomToExtent(vector.getDataExtent());
+                        console.log(data);
+                    });
+                }
+            }
+
+            document.body.onload = function(){
+                document.getElementById('shp').addEventListener('change', onchange, false);
+                document.getElementById('dbf').addEventListener('change', onchange, false);
+            }
         </script>
+        <br>
+        <br>
+        .shp <input id="shp" type="file" name=".shp" />
+        .dbf <input id="dbf" type="file" name=".dbf" />
     </body>
 </html>
 
