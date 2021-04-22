@@ -1,94 +1,126 @@
-This project allows a user to load Shapefiles and DBFs into the browser with JavaScript.
-Outputs as [GeoJSON](http://geojson.org/) for use with other Mapping APIs such as [OpenLayers](http://openlayers.org).
+# leaflet-sidebar
 
-Inspired by the excellent work by Tom Carden ([http://github.com/RandomEtc/shapefile-js/](http://github.com/RandomEtc/shapefile-js/)).
+A responsive sidebar plugin for [Leaflet](http://leafletjs.com/), a JS library for interactive maps.
 
-### Overview
+Please also have a look at [sidebar-v2](https://github.com/Turbo87/sidebar-v2), the tabbed successor of this library.
 
-I just got this out there so nothing is minified.  See index.html for an example of order.  All files need to be in the same directory.  This will use Web Workers if the browser support exists.  Not recommended for large files, more of an experiment than anything.
+<a href="https://flattr.com/submit/auto?user_id=turbo&url=https%3A%2F%2Fgithub.com%2FTurbo87%2Fleaflet-sidebar" target="_blank"><img src="https://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a>
 
-### Running the Example
 
-Host the files (example won't run off disk, needs to be ran on a web server), a simple way to do this is run the following command in the project root:
+## Examples
 
-```sh
-python -m SimpleHTTPServer
-```
+![Basic example](leaflet-sidebar.gif)
 
-And visit http://localhost:8000 in your favorite browser.
+Examples are available in the `examples` folder and on Github Pages:
+
+* [Basic example](http://turbo87.github.io/leaflet-sidebar/examples/)
+* [mapbox.js listing-markers example](http://turbo87.github.io/leaflet-sidebar/examples/listing-markers.html)
+* [Example with 2 sidebars](http://turbo87.github.io/leaflet-sidebar/examples/two-sidebars.html)
+
+
+## Using the plugin
+
+See the included examples for usage.
+
 
 ### Usage
 
-You can use it to parse shapefiles (.shp) or dBase files (.dbf) or both.  Here are some examples.
+Add a content container somewhere in your document:
 
-Load Shapefile Only
+~~~~html
+<div id="sidebar">
+    <h1>leaflet-sidebar</h1>
+</div>
+~~~~
 
-    new Shapefile("myshapefile.shp", function (data) {
-        // data returned
-    });
+Create a new `L.Control.Sidebar` and add it to the map:
 
-Load DBF Only
+~~~~javascript
+var sidebar = L.control.sidebar('sidebar', {
+    position: 'left'
+});
 
-    new DBF("mydbf.dbf", function (data) {
-        // data returned
-    });
+map.addControl(sidebar);
+~~~~
 
-Load Shapefile w/ DBF Attributes
+The sidebar will be hidden on startup, use the following methods to show or hide it:
 
-    new Shapefile({
-        shp: "myshape.shp",
-        dbf: "myshape.dbf"
-    }, function (data) {
-        // data returned
-    });
+~~~~javascript
+// Show sidebar
+sidebar.show();
 
-Use with OpenLayers
+// Hide sidebar
+sidebar.hide();
 
-    var parser = new OpenLayer.Format.GeoJSON(),
-        features;
+// Toggle sidebar visibility
+sidebar.toggle();
 
-    new Shapefile({
-        shp: "myshape.shp",
-        dbf: "myshape.dbf"
-    }, function (data) {
-        features = parser.read(data.geojson);
-    });
+// Check sidebar visibility
+var visible = sidebar.isVisible();
+~~~~
 
-### Resources
+If you want the sidebar to be visible on startup use the following snippet after adding it to the map:
 
-I used the technical descriptions found here to parse the binary:
+~~~~javascript
+setTimeout(function () {
+    sidebar.show();
+}, 500);
+~~~~
 
-> [ESRI Shapefile Technical Description - PDF](http://www.esri.com/library/whitepapers/pdfs/shapefile.pdf)
+Do not call `show()` directly after adding the control to the map. The `setTimeout` will work around some CSS quirks for you.
 
-> [dBase (Xbase) File Format Description](http://www.dbf2002.com/dbf-file-format.html)
+The content of the sidebar can be changed dynamically:
 
-### Future
+~~~~javascript
+sidebar.setContent('test <b>test</b> test');
+~~~~
 
-I plan to implement (time permitting) some custom renderers like SVG or Canvas (besides using OpenLayers) to improve the speed.
+If you need more flexibility you can use `sidebar.getContainer()` to get the content container element or use e.g. jQuery on the `<div id="sidebar">` element.
 
-Feel free to hack at this, submit bugs, pull requests, and make it better.  If you write a renderer, please push it back and I'll add it to the project.
 
-### License
+### Options
 
-(The MIT License)
+The sidebar can be configured with these options:
 
-Copyright (c) 2010 Marc Harter &lt;wavded@gmail.com&gt;
+- **position**: Can be `left` (default) or `right` and shouldn't need explaining.
+- **closeButton**: Can be `true` (default) or `false`. If `true` a close button will be added to the sidebar.
+- **autoPan**: Can be `true` (default) or `false`. If `true` the map will be shifted when the sidebar is shown.
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
 
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
+### Events
 
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+Whenever the visibility of the sidebar is changed, an event is fired on the sidebar instance. You can listen for these events like this:
+
+~~~~javascript
+sidebar.on('hidden', function () {
+    console.log('Sidebar is now hidden.');
+});
+~~~~
+
+Available events:
+
+- **show**: Show animation is starting, sidebar will be visible.
+- **shown**: Show animation finished, sidebar is now visible.
+- **hide**: Hide animation is starting, sidebar will be hidden.
+- **hidden**: Hide animation finished, sidebar is now hidden.
+
+Note that the `shown` and `hidden` events depend on `transitionend`/`webkitTransitionEnd` which might not be supported by all browsers yet.
+
+
+## Compatibility
+
+leaflet-sidebar was developed to work with Leaflet 0.6.4 and should work fine
+with v0.7 too. I have no information whether it works well with older versions.
+
+The leaflet-sidebar plugin has been tested on the following systems and browsers:
+
+- Ubuntu: Firefox, Chrome
+- Mac OS X: Firefox, Chrome, Safari
+- Android 4.3: Firefox, Chrome, Opera
+- iOS: Safari
+- Windows XP: Internet Explorer 6 (failed!)
+
+
+## License
+
+leaflet-sidebar is free software, and may be redistributed under the [MIT license](LICENSE).
