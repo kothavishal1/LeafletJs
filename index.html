@@ -12,10 +12,6 @@
 <![endif]-->
 <link rel="stylesheet" href="site/gh-fork-ribbon.css" />
 <script src="site/leaflet.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.3/proj4.js"></script>
-	<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
-	
-
 <script>
 	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -30,50 +26,23 @@
 			<a href="https://github.com/calvinmetcalf/shapefile-js">Fork me on GitHub</a>
 		</div>
 	</div>  <div id="map"></div>
-	<div id="attr"><div class="tableDisplay"><table id="attribute" class="ui small celled unstackable table">
-		<thead id="attrHead"><tr class="center aligned"><th>Attribute</th><th>Value</th></tr></thead>
-		<tbody class="tbodyContent"></tbody>
-	</table></div><div class="ui red icon button" id="cancelAttr">Close</div></div>
-
 <script src="dist/shp.min.js"> </script>
 <script>
-	 var map = L.map('map').setView([ 0, 0 ], 5),
-		file,
-		vector;
-		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png' , { maxZoom: 13}).addTo(map);
+	 var m= L.map('map').setView([34.74161249883172,18.6328125], 2);
+	 		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png' , { maxZoom: 13}).addTo(m);
 
-			vector = L.geoJson([], {
-				style: function (feature) {
-					return feature.properties.style;
-				},
-				onEachFeature: function (feature, layer) {
-
-					layer.on({click: function(e) {
-						vector.eachLayer(function(l) {
-							vector.resetStyle(l);
-						});
-
-						$('.tbodyContent').remove();
-						var tbody = '<tbody class="tbodyContent">';
-						for (var key in e.target.feature.properties) {
-							tbody +=
-								('<tr class="center aligned"><td>'+ key + '</td><td>' + e.target.feature.properties[key] + '</td></tr>');
-						}
-						$('#attribute').append(tbody + '</tbody>');
-						$('#attr').fadeIn(300);
-						map.panTo(e.latlng);
-
-						if('setStyle' in e.target) e.target.setStyle({
-							fillColor: '#FF0',
-							fillOpacity: 0.6
-						});
-					}});
-				}
-			}).addTo(map);
-			
+      var geo = L.geoJson({features:[]},{onEachFeature:function popUp(f,l){
+    		var out = [];
+    		if (f.properties){
+        		for(var key in f.properties){
+            	out.push(key+": "+f.properties[key]);
+        }
+        l.bindPopup(out.join("<br />"));
+    }
+}}).addTo(m);
       var base = 'files/pandr';
 		shp(base).then(function(data){
-		vector.addData(data);
+		geo.addData(data);
 		});
 
 </script>
