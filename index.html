@@ -84,7 +84,7 @@ oReq.onload = function(e) {
 
   /* Call XLSX */
   var workbook = XLSX.read(bstr, {type:"binary"});
-let excelRows = XLSX.utils.sheet_to_json(workbook.Sheets[sel_val]);
+let excelRows = XLSX.utils.sheet_to_json(workbook.Sheets["Data"]);
     let firstRow = excelRows[0]; // It contains your first row object.
 
     //how to fetch first value and last value of specific column
