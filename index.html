@@ -68,6 +68,7 @@
   // Read markers data from data.csv
   $.get('./latlong.xlsx', function(csvString) {
 	
+	var url = "latlong.xlsx";
 	var oReq = new XMLHttpRequest();
 oReq.open("GET", url, true);
 oReq.responseType = "arraybuffer";
