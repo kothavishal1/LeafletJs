@@ -67,8 +67,8 @@
 
   // Read markers data from data.csv
   $.get('./latlong.xlsx', function(csvString) {
-var url = "latlong.xlsx";
-var oReq = new XMLHttpRequest();
+	
+	var oReq = new XMLHttpRequest();
 oReq.open("GET", url, true);
 oReq.responseType = "arraybuffer";
 
@@ -83,20 +83,17 @@ oReq.onload = function(e) {
 
   /* Call XLSX */
   var workbook = XLSX.read(bstr, {type:"binary"});
-var first_sheet_name = workbook.SheetNames[0];
-console.log(first_sheet_name);
-var address_of_cell = 'A1';
 
-/* Get worksheet */
-var worksheet = workbook.Sheets[first_sheet_name];
-console.log(worksheet);
-/* Find desired cell */
-var desired_cell = worksheet[address_of_cell];
-console.log(desired_cell);
-
-/* Get the value */
-var desired_value = (desired_cell ? desired_cell.v : undefined);
+  /* DO SOMETHING WITH workbook HERE */
 }
+
+oReq.send();
+	
+	
+	
+	
+	
+	
     // Use PapaParse to convert string to array of objects
     var data = Papa.parse(csvString, {header: true, dynamicTyping: true}).data;
 
