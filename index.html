@@ -61,6 +61,12 @@
   // see more basemap options at https://leaflet-extras.github.io/leaflet-providers/preview/
 
 
+
+
+
+
+  // Read markers data from data.csv
+  $.get('./latlong.xlsx', function(csvString) {
 var url = "latlong.xlsx";
 var oReq = new XMLHttpRequest();
 oReq.open("GET", url, true);
@@ -90,13 +96,7 @@ console.log(desired_cell);
 
 /* Get the value */
 var desired_value = (desired_cell ? desired_cell.v : undefined);
-};
-
-
-
-  // Read markers data from data.csv
-  $.get('./data.csv', function(csvString) {
-
+}
     // Use PapaParse to convert string to array of objects
     var data = Papa.parse(csvString, {header: true, dynamicTyping: true}).data;
 
