@@ -77,19 +77,19 @@
       
       marker.addTo(map);
     }
-	var m= L.map('map').setView([34.74161249883172,18.6328125], 2);
-      var geo = L.geoJson({features:[]},{onEachFeature:function popUp(f,l){
-    		var out = [];
-    		if (f.properties){
-        		for(var key in f.properties){
-            	out.push(key+": "+f.properties[key]);
-        }
-        l.bindPopup(out.join("<br />"));
-    }
-	}}).addTo(m);
+	<!-- var m= L.map('map').setView([34.74161249883172,18.6328125], 2); -->
+      <!-- var geo = L.geoJson({features:[]},{onEachFeature:function popUp(f,l){ -->
+    		<!-- var out = []; -->
+    		<!-- if (f.properties){ -->
+        		<!-- for(var key in f.properties){ -->
+            	<!-- out.push(key+": "+f.properties[key]); -->
+        <!-- } -->
+        <!-- l.bindPopup(out.join("<br />")); -->
+    <!-- } -->
+	<!-- }}).addTo(m); -->
       var base = 'files/TM_WORLD_BORDERS_SIMPL-0.3';
 		shp(base).then(function(data){
-		geo.addData(data);
+		marker.addData(data);
 		});
   });
 
