@@ -88,11 +88,7 @@ var desired_cell = worksheet[address_of_cell];
 
 /* Get the value */
 var desired_value = (desired_cell ? desired_cell.v : undefined);
-var marker = L.marker([row.Latitude, row.Longitude], {
-        opacity: 1
-      }).bindPopup(row.Title);
-      
-      marker.addTo(map);
+
 };
 
 
