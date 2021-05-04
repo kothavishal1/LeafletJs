@@ -74,7 +74,7 @@
       var row = data[i];
 
       var marker = L.marker([row.Latitude, row.Longitude], {
-        opacity: 10
+        opacity: 1
       }).bindPopup(row.Title);
       
       marker.addTo(map);
@@ -91,16 +91,11 @@
 	}}).addTo(map);
       var base = 'files/nj_counties.zip';
 		shp(base).then(function(data){
-		
-		L.geoJson({features:[]},{onEachFeature:function popUp(f,l){
-    		var out = [];
-    		if (f.properties){
-        		for(var key in f.properties){
-            	out.push(key+": "+f.properties[key]);
-        }
-        l.bindPopup(out.join("<br />"));
-    }
-	}}).addData(data);
+		geo.addData(data);
+		});
+		var base1 = 'files/pandr.zip';
+		shp(base1).then(function(data){
+		geo.addData(data);
 		});
   });
 
