@@ -38,7 +38,6 @@
   var map = L.map('map', {
     center: [41.57, -72.69], // EDIT latitude, longitude to re-center map
     zoom: 7,  // EDIT from 1 to 18 -- decrease to zoom out, increase to zoom in
-    scrollWheelZoom: false,
     tap: false
   });
 
@@ -93,7 +92,7 @@
 		shp(base).then(function(data){
 		geo.addData(data);
 		});
-		var base1 = 'files/pandr.zip';
+		var base1 = 'files/maSP.zip';
 		shp(base1).then(function(data){
 		geo.addData(data);
 		});
